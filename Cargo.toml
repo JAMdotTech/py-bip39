@@ -1,7 +1,7 @@
 [package]
 name = "py-bip39-bindings"
 description = "Python bindings for tiny-bip39 RUST crate"
-authors=["Stichting Polkascan (Polkascan Foundation)"]
+authors=["JAMdot Technologies"]
 version = "0.3.0"
 repository = "https://github.com/polkascan/py-bip39-bindings"
 homepage = "https://github.com/polkascan/py-bip39-bindings"
