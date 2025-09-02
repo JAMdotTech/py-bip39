@@ -2,7 +2,7 @@
 name = "py-bip39-bindings"
 description = "Python bindings for tiny-bip39 RUST crate"
 authors=["Stichting Polkascan (Polkascan Foundation)"]
-version = "0.2.0"
+version = "0.3.0"
 repository = "https://github.com/polkascan/py-bip39-bindings"
 homepage = "https://github.com/polkascan/py-bip39-bindings"
 license = "Apache-2.0"
@@ -10,9 +10,9 @@ readme = "README.md"
 edition = "2021"
 
 [dependencies]
-hmac = "0.7.1"
-pbkdf2 = { version = "0.3.0", default-features = false }
-sha2 = "0.8.2"
+hmac = "0.12.1"
+pbkdf2 = { version = "0.12.2", default-features = false }
+sha2 = "0.10.9"
 tiny-bip39 = { version = "2.0.0", default-features = true }
 
 [lib]
@@ -20,6 +20,6 @@ name = "bip39"
 crate-type = ["cdylib"]
 
 [dependencies.pyo3]
-version = "0.23.3"
+version = "0.26.0"
 features = ["extension-module"]
 
