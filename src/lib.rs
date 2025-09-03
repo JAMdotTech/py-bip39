@@ -40,6 +40,7 @@ use sha2::Sha512;
 ///
 /// Returns the 32-bytes mini-secret via entropy
 #[pyfunction]
+#[pyo3(signature = (phrase, password, language_code="en"))]
 pub fn bip39_to_mini_secret(phrase: &str, password: &str, language_code: Option<&str>) -> PyResult<Vec<u8>> {
 	let salt = format!("mnemonic{}", password);
 
@@ -54,7 +55,7 @@ pub fn bip39_to_mini_secret(phrase: &str, password: &str, language_code: Option<
 	};
 	let mut result = [0u8; 64];
 
-	pbkdf2::<Hmac<Sha512>>(mnemonic.entropy(), salt.as_bytes(), 2048, &mut result);
+	let _ = pbkdf2::<Hmac<Sha512>>(mnemonic.entropy(), salt.as_bytes(), 2048, &mut result);
 
 	Ok(result[..32].to_vec())
 }
@@ -70,6 +71,7 @@ pub fn bip39_to_mini_secret(phrase: &str, password: &str, language_code: Option<
 ///
 /// A string containing the mnemonic words.
 #[pyfunction]
+#[pyo3(signature = (words, language_code="en"))]
 pub fn bip39_generate(words: u32, language_code: Option<&str>) -> PyResult<String> {
 
 	let language = match Language::from_language_code(language_code.unwrap_or("en")) {
@@ -102,6 +104,7 @@ pub fn bip39_generate(words: u32, language_code: Option<&str>) -> PyResult<Strin
 /// Returns a 32-bytes seed
 ///
 #[pyfunction]
+#[pyo3(signature = (phrase, password, language_code="en"))]
 pub fn bip39_to_seed(phrase: &str, password: &str, language_code: Option<&str>) -> PyResult<Vec<u8>> {
 
 	let language = match Language::from_language_code(language_code.unwrap_or("en")) {
@@ -131,6 +134,7 @@ pub fn bip39_to_seed(phrase: &str, password: &str, language_code: Option<&str>) 
 ///
 /// Returns boolean with validation result
 #[pyfunction]
+#[pyo3(signature = (phrase, language_code="en"))]
 pub fn bip39_validate(phrase: &str, language_code: Option<&str>) -> PyResult<bool> {
 	let language = match Language::from_language_code(language_code.unwrap_or("en")) {
 		Some(language) => language,
