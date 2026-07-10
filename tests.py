@@ -14,6 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import concurrent.futures
+import subprocess
+import sys
+import sysconfig
+import threading
 import unittest
 
 import bip39
@@ -25,6 +30,17 @@ class MyTestCase(unittest.TestCase):
                    187, 45, 20, 195, 40, 22, 91, 21, 209, 128]
     seed = [97, 142, 41, 83, 73, 179, 98, 128, 176, 134, 250, 222, 64, 184, 51, 176, 121, 119, 215, 115, 220, 77, 28,
             15, 253, 64, 10, 1, 213, 54, 239, 124]
+
+    @staticmethod
+    def call_all_apis(args):
+        start, mnemonic = args
+        start.wait()
+        generated = bip39.bip39_generate(12)
+        return (
+            bip39.bip39_validate(generated),
+            bip39.bip39_to_seed(mnemonic, ''),
+            bip39.bip39_to_mini_secret(mnemonic, ''),
+        )
 
     def test_generate_mnemonic(self):
         mnemonic = bip39.bip39_generate(12)
@@ -93,6 +109,37 @@ class MyTestCase(unittest.TestCase):
             bip39.bip39_generate(12, "unknown")
 
         self.assertEqual('Invalid language_code', str(e.exception))
+
+    def test_concurrent_calls(self):
+        """Exercise the public API concurrently, including lazy word-map setup."""
+        worker_count = 16
+        start = threading.Barrier(worker_count)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=worker_count) as executor:
+            results = list(executor.map(self.call_all_apis, [(start, self.mnemonic)] * worker_count))
+
+        expected_seed = bytes(self.seed)
+        expected_mini_secret = bytes(self.mini_secret)
+        self.assertTrue(all(
+            is_valid and seed == expected_seed and mini_secret == expected_mini_secret
+            for is_valid, seed, mini_secret in results
+        ))
+
+    def test_free_threaded_import_keeps_gil_disabled(self):
+        if sysconfig.get_config_var('Py_GIL_DISABLED') != 1:
+            self.skipTest('requires a free-threaded CPython build')
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                '-Xgil=0',
+                '-c',
+                'import bip39; import sys; assert not sys._is_gil_enabled()',
+            ],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
 
 
 if __name__ == '__main__':

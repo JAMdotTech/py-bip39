@@ -147,7 +147,9 @@ pub fn bip39_validate(phrase: &str, language_code: Option<&str>) -> PyResult<boo
 	}
 }
 
-#[pymodule]
+// All functions operate only on call-local Rust data. The dependency's lazily
+// initialized word lists are synchronized and read-only after initialization.
+#[pymodule(gil_used = false)]
 fn bip39(m: &Bound<'_, PyModule>) -> PyResult<()> {
 	m.add_function(wrap_pyfunction!(bip39_to_mini_secret, m)?)?;
 	m.add_function(wrap_pyfunction!(bip39_generate, m)?)?;
