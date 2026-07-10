@@ -34,6 +34,28 @@ docker run --rm -i -v $(pwd):/io polkasource/maturin build
 
 ```
 
+### Free-threaded Python
+
+The extension supports CPython 3.14's free-threaded build. Its public API has
+no shared mutable state, and the `tiny-bip39` word-list caches are synchronized
+and immutable after initialization.
+
+Run the concurrent regression test with a free-threaded interpreter:
+
+```shell script
+maturin develop --release --interpreter python3.14t
+python3.14t -Xgil=0 -m pytest -q tests.py
+```
+
+To check native data races, build both CPython and this extension with ThreadSanitizer, then run:
+
+```shell script
+TSAN_OPTIONS='allocator_may_return_null=1 halt_on_error=1' python3.14t -Xgil=0 -m pytest -s -q tests.py
+```
+
+See the [Python free-threading ThreadSanitizer guide](https://py-free-threading.github.io/thread_sanitizer/)
+for building the TSan-instrumented interpreter and extension.
+
 ## Examples
 
 ```python
